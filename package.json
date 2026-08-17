@@ -1,0 +1,27 @@
+{
+  "name": "com.romankarimov.simple-manipulation-kit",
+  "version": "1.0.0",
+  "displayName": "Simple Manipulation Kit",
+  "description": "Unity runtime kit for selection, drag and marquee interaction on UI and 3D objects.",
+  "unity": "6000.0",
+  "documentationUrl": "https://github.com/romankarimov/SimpleManipulationKit#readme",
+  "changelogUrl": "https://github.com/romankarimov/SimpleManipulationKit/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/romankarimov/SimpleManipulationKit/blob/main/LICENSE",
+  "author": {
+    "name": "Roman Karimov"
+  },
+  "keywords": [
+    "interaction",
+    "selection",
+    "drag",
+    "marquee",
+    "ui"
+  ],
+  "samples": [
+    {
+      "displayName": "Basic Setup",
+      "description": "Minimal setup notes for selection, drag and marquee.",
+      "path": "Samples~/BasicSetup"
+    }
+  ]
+}
