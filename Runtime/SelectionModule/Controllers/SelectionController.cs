@@ -27,6 +27,12 @@ namespace SimpleManipulationKit.Internal
             selectionCalculator ??= new MultiSelection();
         }
 
+
+        private void OnDisable()
+        {
+            InteractionContext.Selection.Remove(Selectable);
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             if (Selectable is null)

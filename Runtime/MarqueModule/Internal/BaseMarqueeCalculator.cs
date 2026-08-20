@@ -25,6 +25,11 @@ namespace SimpleManipulationKit.Internal
 
         protected void ApplySelection(ISelectable selectable)
         {
+            if (selectable is MonoBehaviour behaviour && !behaviour.isActiveAndEnabled)
+            {
+                return;
+            }
+
             if (IsControlPressed)
             {
                 Selection.Toggle(selectable);
