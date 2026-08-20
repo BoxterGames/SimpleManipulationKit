@@ -8,11 +8,11 @@ namespace SimpleManipulationKit.Internal
     public class DragController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
         [SerializeField] private MonoBehaviour view;
-        [SerializeReference] private IDragCalculator dragCalculator = new MultiScreenDrag();
-
-        private bool isDragging;
+        [SerializeReference] private ISelectionCalculator selectionCalculator = new MultiSelection();
+        [SerializeReference] private IDragCalculator dragCalculator = new ScreenDrag();
 
         private IDraggable Draggable => view as IDraggable;
+        private bool IsDragging => InteractionContext.Drag.IsDragging;
 
         private void OnValidate()
         {
@@ -26,22 +26,18 @@ namespace SimpleManipulationKit.Internal
 
         private void Awake()
         {
-            dragCalculator ??= new MultiScreenDrag();
+            dragCalculator ??= new ScreenDrag();
         }
 
         private void Update()
         {
-            if (!isDragging)
+            if (!IsDragging)
             {
                 return;
             }
 
             dragCalculator.UpdateDrag();
-
-            if (Draggable is IDraggableUpdate draggableUpdate)
-            {
-                draggableUpdate.OnDragUpdate(Input.mousePosition);
-            }
+            InteractionContext.Drag.UpdateDrag(Input.mousePosition);
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -51,29 +47,26 @@ namespace SimpleManipulationKit.Internal
                 return;
             }
 
-            if (Draggable is IDraggableStart draggableStart)
-            {
-                draggableStart.OnDragStart();
-            }
-
-            isDragging = true;
-            dragCalculator.BeginDrag(Draggable);
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            if (!isDragging)
+            selectionCalculator.Select(Draggable);
+            var selected = InteractionContext.Selection.GetSelected<IDraggable>().ToList();
+            if (selected.Count == 0)
             {
                 return;
             }
 
-            if (Draggable is IDraggableEnd draggableEnd)
+            InteractionContext.Drag.BeginDrag(selected, Input.mousePosition);
+            dragCalculator.BeginDrag(selected);
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (!IsDragging)
             {
-                draggableEnd.OnDragEnd(eventData.position);
+                return;
             }
 
             dragCalculator.EndDrag();
-            isDragging = false;
+            InteractionContext.Drag.EndDrag(Input.mousePosition);
         }
     }
 }

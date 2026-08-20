@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using SimpleManipulationKit;
 
 namespace SimpleManipulationKit.Internal
 {
     public interface IDragCalculator
     {
-        void BeginDrag(IDraggable source);
+        void BeginDrag(List<IDraggable> draggables);
         void UpdateDrag();
         void EndDrag();
     }

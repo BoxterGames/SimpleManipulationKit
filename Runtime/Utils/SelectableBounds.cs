@@ -5,10 +5,28 @@ namespace SimpleManipulationKit
 {
     public static class SelectableBounds
     {
-        public static bool IntersectsMarqueeWorld(ISelectable selectable, Vector3 screenStart, Vector3 screenEnd, Camera camera)
+        public static bool IntersectsMarqueeXoZ(ISelectable selectable, Vector3 screenStart, Vector3 screenEnd, Camera camera)
         {
-            MarqueePlane.GetScreenRectBoundsOnPlane(screenStart, screenEnd, camera, out var minX, out var maxX, out var minZ, out var maxZ);
+            return IntersectsPlane(selectable, screenStart, screenEnd, camera, new XoZMarquee());
+        }
 
+        public static bool IntersectsMarqueeXY(ISelectable selectable, Vector3 screenStart, Vector3 screenEnd, Camera camera)
+        {
+            if (selectable is MonoBehaviour behaviour && behaviour.transform is RectTransform)
+            {
+                return IntersectsScreen(selectable, screenStart, screenEnd);
+            }
+
+            return IntersectsPlane(selectable, screenStart, screenEnd, camera, new XYMarquee());
+        }
+
+        private static bool IntersectsPlane(
+            ISelectable selectable,
+            Vector3 screenStart,
+            Vector3 screenEnd,
+            Camera camera,
+            IMarqueeView plane)
+        {
             if (selectable is not MonoBehaviour behaviour)
             {
                 return false;
@@ -23,7 +41,7 @@ namespace SimpleManipulationKit
 
                 foreach (var corner in corners)
                 {
-                    if (MarqueePlane.Contains(corner, minX, maxX, minZ, maxZ))
+                    if (plane.Contains(corner, screenStart, screenEnd, camera))
                     {
                         return true;
                     }
@@ -32,10 +50,10 @@ namespace SimpleManipulationKit
                 return false;
             }
 
-            return MarqueePlane.Contains(transform.position, minX, maxX, minZ, maxZ);
+            return plane.Contains(transform.position, screenStart, screenEnd, camera);
         }
 
-        public static bool IntersectsMarqueeScreen(ISelectable selectable, Vector3 start, Vector3 end)
+        private static bool IntersectsScreen(ISelectable selectable, Vector3 start, Vector3 end)
         {
             if (selectable is not MonoBehaviour behaviour || behaviour.transform is not RectTransform rectTransform)
             {

@@ -11,7 +11,7 @@ namespace SimpleManipulationKit
 
     public interface IDraggableStart : IDraggable
     {
-        void OnDragStart();
+        void OnDragStart(Vector3 position);
     }
 
     public interface IDraggableUpdate : IDraggable

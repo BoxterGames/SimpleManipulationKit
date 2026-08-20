@@ -1,31 +1,35 @@
 using System;
-using SimpleManipulationKit;
+using UnityEngine;
 
 namespace SimpleManipulationKit.Internal
 {
     [Serializable]
-    public sealed class MultiSelection : BaseSelectionCalculator
+    public sealed class MultiSelection : ISelectionCalculator
     {
-        public override void Select(ISelectable selectable)
+        private bool IsShiftPressed => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        private bool IsControlPressed => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+        private SelectionModel Model => InteractionContext.Selection;
+        
+        public void Select(ISelectable selectable)
         {
             if (IsShiftPressed)
             {
-                Selection.Add(selectable);
+                Model.Add(selectable);
                 return;
             }
 
             if (IsControlPressed)
             {
-                Selection.Toggle(selectable);
+                Model.Toggle(selectable);
                 return;
             }
 
-            if (selectable is IDraggable && Selection.Contains(selectable))
+            if (selectable is IDraggable && Model.Contains(selectable))
             {
                 return;
             }
 
-            Selection.Set(selectable);
+            Model.Set(selectable);
         }
     }
 }

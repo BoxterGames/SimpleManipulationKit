@@ -3,11 +3,11 @@ using System;
 namespace SimpleManipulationKit.Internal
 {
     [Serializable]
-    public sealed class SimpleSelection : BaseSelectionCalculator
+    public sealed class SimpleSelection : ISelectionCalculator
     {
-        public override void Select(ISelectable selectable)
+        public void Select(ISelectable selectable)
         {
-            Selection.Set(selectable);
+            InteractionContext.Selection.Set(selectable);
         }
     }
 }

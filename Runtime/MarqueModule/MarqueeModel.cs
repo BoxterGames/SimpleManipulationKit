@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SimpleManipulationKit.Internal;
 using UnityEngine;
 
 namespace SimpleManipulationKit
@@ -11,6 +12,7 @@ namespace SimpleManipulationKit
         public bool IsActive { get; private set; }
         public Vector3 StartPosition { get; private set; }
         public Vector3 EndPosition { get; private set; }
+        public IMarqueeView View { get; set; } = new XoZMarquee();
 
         public event Action<Vector3> OnMarqueeStart;
         public event Action<Vector3, Vector3> OnMarqueeUpdate;

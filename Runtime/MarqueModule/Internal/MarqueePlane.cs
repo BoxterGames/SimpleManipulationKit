@@ -48,5 +48,41 @@ namespace SimpleManipulationKit.Internal
             return world.x >= minX && world.x <= maxX
                 && world.z >= minZ && world.z <= maxZ;
         }
+
+        public static Vector3 ScreenToXYPlane(Vector3 screen, Camera camera)
+        {
+            var ray = camera.ScreenPointToRay(screen);
+            var plane = new Plane(Vector3.forward, Vector3.zero);
+            return plane.Raycast(ray, out var enter) ? ray.GetPoint(enter) : Vector3.zero;
+        }
+
+        public static void GetScreenRectBoundsOnXYPlane(
+            Vector3 screenStart,
+            Vector3 screenEnd,
+            Camera camera,
+            out float minX,
+            out float maxX,
+            out float minY,
+            out float maxY)
+        {
+            var minScreen = Vector2.Min(screenStart, screenEnd);
+            var maxScreen = Vector2.Max(screenStart, screenEnd);
+
+            var topLeft = ScreenToXYPlane(new Vector3(minScreen.x, maxScreen.y, 0f), camera);
+            var topRight = ScreenToXYPlane(new Vector3(maxScreen.x, maxScreen.y, 0f), camera);
+            var bottomRight = ScreenToXYPlane(new Vector3(maxScreen.x, minScreen.y, 0f), camera);
+            var bottomLeft = ScreenToXYPlane(new Vector3(minScreen.x, minScreen.y, 0f), camera);
+
+            minX = Mathf.Min(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
+            maxX = Mathf.Max(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
+            minY = Mathf.Min(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
+            maxY = Mathf.Max(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
+        }
+
+        public static bool ContainsXY(Vector3 world, float minX, float maxX, float minY, float maxY)
+        {
+            return world.x >= minX && world.x <= maxX
+                && world.y >= minY && world.y <= maxY;
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace SimpleManipulationKit.Internal
     public sealed class MarqueSelectController : MonoBehaviour
     {
         [SerializeField] private MonoBehaviour view;
-        [SerializeReference] private IMarqueeCalculator marqueeCalculator = new SelectMarqueeWorld();
+        [SerializeReference] private IMarqueeCalculator marqueeCalculator = new SelectMarqueeXoZ();
 
         private ISelectable Selectable => view as ISelectable;
 
@@ -25,7 +25,7 @@ namespace SimpleManipulationKit.Internal
 
         private void Awake()
         {
-            marqueeCalculator ??= new SelectMarqueeWorld();
+            marqueeCalculator ??= new SelectMarqueeXoZ();
             Marquee.OnMarqueeEnd += HandleMarqueeEnd;
         }
 

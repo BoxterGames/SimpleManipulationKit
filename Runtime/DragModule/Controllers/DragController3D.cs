@@ -8,11 +8,11 @@ namespace SimpleManipulationKit.Internal
     public class DragController3D : MonoBehaviour
     {
         [SerializeField] private MonoBehaviour view;
-        [SerializeReference] private IDragCalculator dragCalculator = new MultiWorldDrag();
-
-        private bool isDragging;
+        [SerializeReference] private ISelectionCalculator selectionCalculator = new MultiSelection();
+        [SerializeReference] private IDragCalculator dragCalculator = new XoZDrag();
 
         private IDraggable Draggable => view as IDraggable;
+        private bool IsDragging => InteractionContext.Drag.IsDragging;
 
         private void OnValidate()
         {
@@ -26,27 +26,18 @@ namespace SimpleManipulationKit.Internal
 
         private void Awake()
         {
-            dragCalculator ??= new MultiWorldDrag();
+            dragCalculator ??= new XoZDrag();
         }
 
         private void Update()
         {
-            if (!isDragging)
+            if (!IsDragging)
             {
                 return;
             }
 
             dragCalculator.UpdateDrag();
-
-            if (Draggable is IDraggableUpdate draggableUpdate)
-            {
-                draggableUpdate.OnDragUpdate(Input.mousePosition);
-            }
-
-            if (Input.GetMouseButtonUp(0))
-            {
-                EndDrag();
-            }
+            InteractionContext.Drag.UpdateDrag(Input.mousePosition);
         }
 
         private void OnMouseDown()
@@ -56,34 +47,26 @@ namespace SimpleManipulationKit.Internal
                 return;
             }
 
-            if (Draggable is IDraggableStart draggableStart)
-            {
-                draggableStart.OnDragStart();
-            }
-
-            isDragging = true;
-            dragCalculator.BeginDrag(Draggable);
-        }
-
-        private void OnMouseUp()
-        {
-            EndDrag();
-        }
-
-        private void EndDrag()
-        {
-            if (!isDragging)
+            selectionCalculator.Select(Draggable);
+            var selected = InteractionContext.Selection.GetSelected<IDraggable>().ToList();
+            if (selected.Count == 0)
             {
                 return;
             }
 
-            if (Draggable is IDraggableEnd draggableEnd)
+            InteractionContext.Drag.BeginDrag(selected, Input.mousePosition);
+            dragCalculator.BeginDrag(selected);
+        }
+
+        private void OnMouseUp()
+        {
+            if (!IsDragging)
             {
-                draggableEnd.OnDragEnd(Input.mousePosition);
+                return;
             }
 
             dragCalculator.EndDrag();
-            isDragging = false;
+            InteractionContext.Drag.EndDrag(Input.mousePosition);
         }
     }
 }

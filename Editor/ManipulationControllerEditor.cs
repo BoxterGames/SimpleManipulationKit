@@ -1,4 +1,5 @@
 using System;
+using SimpleManipulationKit;
 using SimpleManipulationKit.Internal;
 using UnityEditor;
 
@@ -64,4 +65,8 @@ namespace SimpleManipulationKit.Editor
     [CanEditMultipleObjects]
     [CustomEditor(typeof(MarqueSelectController))]
     public sealed class MarqueSelectControllerEditor : ManipulationControllerEditor { }
+
+    [CanEditMultipleObjects]
+    [CustomEditor(typeof(MarqueeView))]
+    public sealed class MarqueeViewEditor : ManipulationControllerEditor { }
 }
