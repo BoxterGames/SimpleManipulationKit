@@ -1,4 +1,5 @@
 using System;
+using SimpleManipulationKit;
 using UnityEngine;
 
 namespace SimpleManipulationKit.Internal
@@ -6,93 +7,59 @@ namespace SimpleManipulationKit.Internal
     [Serializable]
     public sealed class XYMarquee : IMarqueeView
     {
-        public void Apply(Transform target, Vector3 screenStart, Vector3 screenEnd, Camera camera)
+        private RectTransform root;
+
+        public Vector3 Project(Vector3 screen, Camera camera, Transform target)
         {
-            if (target.parent is RectTransform root)
+            if (target != null && target.parent is RectTransform rectRoot)
             {
-                ApplyInRect(target, root, screenStart, screenEnd, camera);
+                root = rectRoot;
+                return ToLocal(rectRoot, screen, camera);
+            }
+
+            root = null;
+            return MarqueePlane.ScreenToXYPlane(screen, camera);
+        }
+
+        public void Apply(Transform target, Vector3 start, Vector3 end)
+        {
+            if (target.parent is RectTransform rectRoot)
+            {
+                root = rectRoot;
+                ApplyInRect(target, start, end);
                 return;
             }
 
-            MarqueePlane.GetScreenRectBoundsOnXYPlane(
-                screenStart,
-                screenEnd,
-                camera,
-                out var minX,
-                out var maxX,
-                out var minY,
-                out var maxY);
-
+            root = null;
+            MarqueePlane.GetBoundsXY(start, end, out var minX, out var maxX, out var minY, out var maxY);
             target.position = new Vector3((minX + maxX) * 0.5f, (minY + maxY) * 0.5f, 0f);
             target.localScale = new Vector3(maxX - minX, maxY - minY, 1f);
         }
 
-        public bool Contains(Vector3 world, Vector3 screenStart, Vector3 screenEnd, Camera camera)
+        public bool Contains(Vector3 world, Vector3 start, Vector3 end)
         {
-            MarqueePlane.GetScreenRectBoundsOnXYPlane(
-                screenStart,
-                screenEnd,
-                camera,
-                out var minX,
-                out var maxX,
-                out var minY,
-                out var maxY);
-
-            return MarqueePlane.ContainsXY(world, minX, maxX, minY, maxY);
+            var point = root != null ? root.InverseTransformPoint(world) : world;
+            MarqueePlane.GetBoundsXY(start, end, out var minX, out var maxX, out var minY, out var maxY);
+            return MarqueePlane.ContainsXY(point, minX, maxX, minY, maxY);
         }
 
-        private static void ApplyInRect(
-            Transform target,
-            RectTransform root,
-            Vector3 screenStart,
-            Vector3 screenEnd,
-            Camera camera)
+        private static void ApplyInRect(Transform target, Vector3 start, Vector3 end)
         {
-            var canvas = root.GetComponentInParent<Canvas>();
+            MarqueePlane.GetBoundsXY(start, end, out var minX, out var maxX, out var minY, out var maxY);
+            var center = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
+            target.localPosition = new Vector3(center.x, center.y, target.localPosition.z);
+            target.localScale = new Vector3(maxX - minX, maxY - minY, 1f);
+        }
+
+        private static Vector3 ToLocal(RectTransform rectRoot, Vector3 screen, Camera camera)
+        {
+            var canvas = rectRoot.GetComponentInParent<Canvas>();
             var cam = canvas != null && canvas.renderMode == RenderMode.ScreenSpaceOverlay
                 ? null
                 : camera != null ? camera : canvas?.worldCamera ?? Camera.main;
 
-            var minScreen = Vector2.Min(screenStart, screenEnd);
-            var maxScreen = Vector2.Max(screenStart, screenEnd);
-
-            var min = new Vector2(float.MaxValue, float.MaxValue);
-            var max = new Vector2(float.MinValue, float.MinValue);
-            var initialized = false;
-
-            TryProject(new Vector2(minScreen.x, maxScreen.y));
-            TryProject(new Vector2(maxScreen.x, maxScreen.y));
-            TryProject(new Vector2(maxScreen.x, minScreen.y));
-            TryProject(new Vector2(minScreen.x, minScreen.y));
-
-            if (!initialized)
-            {
-                target.localScale = Vector3.zero;
-                return;
-            }
-
-            var center = (min + max) * 0.5f;
-            var size = max - min;
-            target.localPosition = new Vector3(center.x, center.y, target.localPosition.z);
-            target.localScale = new Vector3(size.x, size.y, 1f);
-
-            void TryProject(Vector2 screen)
-            {
-                if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root, screen, cam, out var local))
-                {
-                    return;
-                }
-
-                if (!initialized)
-                {
-                    min = max = local;
-                    initialized = true;
-                    return;
-                }
-
-                min = Vector2.Min(min, local);
-                max = Vector2.Max(max, local);
-            }
+            var local = rectRoot.GetLocalPosition(cam, screen);
+            return new Vector3(local.x, local.y, 0f);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace SimpleManipulationKit.Internal
     {
         public override void OnMarqueeEnd(ISelectable selectable, Vector3 start, Vector3 end)
         {
-            if (!SelectableBounds.IntersectsMarqueeXoZ(selectable, start, end, MarqueeCamera))
+            if (!SelectableBounds.IntersectsMarqueeXoZ(selectable, start, end))
             {
                 return;
             }

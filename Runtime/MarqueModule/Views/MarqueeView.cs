@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace SimpleManipulationKit
 {
+    [DefaultExecutionOrder(-100)]
     public sealed class MarqueeView : MonoBehaviour
     {
         [SerializeField] private Camera interactionCamera;
@@ -23,16 +24,17 @@ namespace SimpleManipulationKit
         {
             view ??= new XoZMarquee();
             PrepareUnitScale();
+            Bind();
         }
 
         private void OnEnable()
         {
-            Marquee.View = view;
+            Bind();
         }
 
         private void LateUpdate()
         {
-            Marquee.View = view;
+            Bind();
 
             if (!ShouldShow() || view is null)
             {
@@ -40,7 +42,13 @@ namespace SimpleManipulationKit
                 return;
             }
 
-            view.Apply(transform, Marquee.StartPosition, Marquee.EndPosition, Camera);
+            view.Apply(transform, Marquee.StartPosition, Marquee.EndPosition);
+        }
+
+        private void Bind()
+        {
+            Marquee.View = view;
+            Marquee.Camera = Camera;
         }
 
         private void PrepareUnitScale()

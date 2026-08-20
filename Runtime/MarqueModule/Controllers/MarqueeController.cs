@@ -13,13 +13,13 @@ namespace SimpleManipulationKit.Internal
 
         private Vector3 fromScreen;
         private bool wasDragging;
-
+        
         private void Update()
         {
             if (Input.GetMouseButtonDown(0) && !IsPointerOverUI())
             {
                 fromScreen = Input.mousePosition;
-                Marquee.BeginMarquee(fromScreen);
+                Marquee.BeginMarquee(Project(fromScreen));
             }
 
             if (Input.GetMouseButton(0) && Marquee.IsActive)
@@ -41,11 +41,11 @@ namespace SimpleManipulationKit.Internal
 
             if (((Vector2)toScreen - (Vector2)fromScreen).magnitude < MinScreenDistance)
             {
-                Marquee.UpdateMarquee(fromScreen);
+                Marquee.UpdateMarquee(Marquee.StartPosition);
                 return;
             }
 
-            Marquee.UpdateMarquee(toScreen);
+            Marquee.UpdateMarquee(Project(toScreen));
         }
 
         private void CompleteMarquee()
@@ -58,6 +58,18 @@ namespace SimpleManipulationKit.Internal
             }
 
             Marquee.EndMarquee(Marquee.EndPosition);
+        }
+
+        private Vector3 Project(Vector3 screen)
+        {
+            var view = Marquee.View;
+            if (view == null)
+            {
+                return screen;
+            }
+
+            var camera = Marquee.Camera != null ? Marquee.Camera : Camera.main;
+            return view.Project(screen, camera, transform);
         }
 
         private static bool IsPointerOverUI() =>

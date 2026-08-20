@@ -20,27 +20,12 @@ namespace SimpleManipulationKit.Internal
             maxZ = Mathf.Max(a.z, b.z);
         }
 
-        public static void GetScreenRectBoundsOnPlane(
-            Vector3 screenStart,
-            Vector3 screenEnd,
-            Camera camera,
-            out float minX,
-            out float maxX,
-            out float minZ,
-            out float maxZ)
+        public static void GetBoundsXY(Vector3 a, Vector3 b, out float minX, out float maxX, out float minY, out float maxY)
         {
-            var minScreen = Vector2.Min(screenStart, screenEnd);
-            var maxScreen = Vector2.Max(screenStart, screenEnd);
-
-            var topLeft = ScreenToPlane(new Vector3(minScreen.x, maxScreen.y, 0f), camera);
-            var topRight = ScreenToPlane(new Vector3(maxScreen.x, maxScreen.y, 0f), camera);
-            var bottomRight = ScreenToPlane(new Vector3(maxScreen.x, minScreen.y, 0f), camera);
-            var bottomLeft = ScreenToPlane(new Vector3(minScreen.x, minScreen.y, 0f), camera);
-
-            minX = Mathf.Min(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
-            maxX = Mathf.Max(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
-            minZ = Mathf.Min(topLeft.z, topRight.z, bottomRight.z, bottomLeft.z);
-            maxZ = Mathf.Max(topLeft.z, topRight.z, bottomRight.z, bottomLeft.z);
+            minX = Mathf.Min(a.x, b.x);
+            maxX = Mathf.Max(a.x, b.x);
+            minY = Mathf.Min(a.y, b.y);
+            maxY = Mathf.Max(a.y, b.y);
         }
 
         public static bool Contains(Vector3 world, float minX, float maxX, float minZ, float maxZ)
@@ -54,29 +39,6 @@ namespace SimpleManipulationKit.Internal
             var ray = camera.ScreenPointToRay(screen);
             var plane = new Plane(Vector3.forward, Vector3.zero);
             return plane.Raycast(ray, out var enter) ? ray.GetPoint(enter) : Vector3.zero;
-        }
-
-        public static void GetScreenRectBoundsOnXYPlane(
-            Vector3 screenStart,
-            Vector3 screenEnd,
-            Camera camera,
-            out float minX,
-            out float maxX,
-            out float minY,
-            out float maxY)
-        {
-            var minScreen = Vector2.Min(screenStart, screenEnd);
-            var maxScreen = Vector2.Max(screenStart, screenEnd);
-
-            var topLeft = ScreenToXYPlane(new Vector3(minScreen.x, maxScreen.y, 0f), camera);
-            var topRight = ScreenToXYPlane(new Vector3(maxScreen.x, maxScreen.y, 0f), camera);
-            var bottomRight = ScreenToXYPlane(new Vector3(maxScreen.x, minScreen.y, 0f), camera);
-            var bottomLeft = ScreenToXYPlane(new Vector3(minScreen.x, minScreen.y, 0f), camera);
-
-            minX = Mathf.Min(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
-            maxX = Mathf.Max(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
-            minY = Mathf.Min(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
-            maxY = Mathf.Max(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
         }
 
         public static bool ContainsXY(Vector3 world, float minX, float maxX, float minY, float maxY)
