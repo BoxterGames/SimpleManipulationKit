@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using SimpleManipulationKit.Internal;
 using UnityEngine;
 
 namespace SimpleManipulationKit
@@ -9,45 +8,45 @@ namespace SimpleManipulationKit
     {
         private readonly HashSet<ISelectable> replaceBatch = new();
 
+        private Vector3 startWorld;
+        private Vector3 endWorld;
+
         public bool IsActive { get; private set; }
-        public Vector3 StartPosition { get; private set; }
-        public Vector3 EndPosition { get; private set; }
-        public IMarqueeView View { get; set; } = new XoZMarquee();
-        public Camera Camera { get; set; }
+
+        public Vector3 StartScreen => WorldToScreen(startWorld);
+        public Vector3 EndScreen => WorldToScreen(endWorld);
 
         public event Action<Vector3> OnMarqueeStart;
         public event Action<Vector3, Vector3> OnMarqueeUpdate;
         public event Action<Vector3, Vector3> OnMarqueeEnd;
 
-        public void BeginMarquee(Vector3 start)
+        public void BeginMarquee(Vector3 startScreen)
         {
-            StartPosition = start;
-            EndPosition = start;
+            startWorld = ScreenToWorld(startScreen);
+            endWorld = startWorld;
             IsActive = true;
-            OnMarqueeStart?.Invoke(start);
+            OnMarqueeStart?.Invoke(StartScreen);
         }
 
-        public void UpdateMarquee(Vector3 end)
+        public void UpdateMarquee(Vector3 endScreen)
         {
             if (!IsActive)
             {
                 return;
             }
 
-            EndPosition = end;
-            OnMarqueeUpdate?.Invoke(StartPosition, end);
+            endWorld = ScreenToWorld(endScreen);
+            OnMarqueeUpdate?.Invoke(StartScreen, EndScreen);
         }
 
-        public void EndMarquee(Vector3 end)
+        public void EndMarquee()
         {
             if (!IsActive)
             {
                 return;
             }
 
-            EndPosition = end;
-            replaceBatch.Clear();
-            OnMarqueeEnd?.Invoke(StartPosition, end);
+            OnMarqueeEnd?.Invoke(StartScreen, EndScreen);
 
             if (replaceBatch.Count > 0)
             {
@@ -74,9 +73,35 @@ namespace SimpleManipulationKit
 
         private void Clear()
         {
-            StartPosition = Vector3.zero;
-            EndPosition = Vector3.zero;
+            startWorld = Vector3.zero;
+            endWorld = Vector3.zero;
             IsActive = false;
+        }
+
+        private static Vector3 ScreenToWorld(Vector3 screen)
+        {
+            var camera = Camera.main;
+            if (camera == null)
+            {
+                return screen;
+            }
+
+            var ray = camera.ScreenPointToRay(screen);
+            var plane = new Plane(camera.transform.forward, Vector3.zero);
+
+            if (plane.Raycast(ray, out var enter))
+            {
+                return ray.GetPoint(enter);
+            }
+
+            screen.z = Mathf.Max(camera.nearClipPlane, 0.1f);
+            return camera.ScreenToWorldPoint(screen);
+        }
+
+        private static Vector3 WorldToScreen(Vector3 world)
+        {
+            var camera = Camera.main;
+            return camera != null ? camera.WorldToScreenPoint(world) : world;
         }
     }
 }

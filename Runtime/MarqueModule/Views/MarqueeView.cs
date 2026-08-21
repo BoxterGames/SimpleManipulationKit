@@ -6,64 +6,27 @@ namespace SimpleManipulationKit
     [DefaultExecutionOrder(-100)]
     public sealed class MarqueeView : MonoBehaviour
     {
-        [SerializeField] private Camera interactionCamera;
-        [SerializeReference] private IMarqueeView view = new XoZMarquee();
+        [SerializeReference, Attributes] private ISpaceConverter interactionSpace = new ScreenSpaceConverter();
 
         private MarqueeModel Marquee => InteractionContext.Marquee;
 
-        private Camera Camera =>
-            interactionCamera != null ? interactionCamera : UnityEngine.Camera.main;
-
-        private void OnValidate()
-        {
-            view ??= new XoZMarquee();
-            PrepareUnitScale();
-        }
-
         private void Awake()
         {
-            view ??= new XoZMarquee();
-            PrepareUnitScale();
-            Bind();
-        }
-
-        private void OnEnable()
-        {
-            Bind();
+            transform.localScale = interactionSpace.GetSize(transform, Vector3.zero, Vector3.zero);
         }
 
         private void LateUpdate()
         {
-            Bind();
-
-            if (!ShouldShow() || view is null)
+            if (!InteractionContext.Marquee.IsActive
+                || !Input.GetMouseButton(0)
+                || InteractionContext.Drag.IsDragging)
             {
-                transform.localScale = Vector3.zero;
+                transform.localScale = interactionSpace.GetSize(transform, Vector3.zero, Vector3.zero);
                 return;
             }
-
-            view.Apply(transform, Marquee.StartPosition, Marquee.EndPosition);
-        }
-
-        private void Bind()
-        {
-            Marquee.View = view;
-            Marquee.Camera = Camera;
-        }
-
-        private void PrepareUnitScale()
-        {
-            if (transform is RectTransform rectTransform)
-            {
-                rectTransform.sizeDelta = Vector2.one;
-            }
-        }
-
-        private static bool ShouldShow()
-        {
-            return InteractionContext.Marquee.IsActive
-                && Input.GetMouseButton(0)
-                && !InteractionContext.Drag.IsDragging;
+            
+            transform.position = interactionSpace.GetCenterPosition(transform, Marquee.StartScreen, Marquee.EndScreen);
+            transform.localScale = interactionSpace.GetSize(transform, Marquee.StartScreen, Marquee.EndScreen);
         }
     }
 }

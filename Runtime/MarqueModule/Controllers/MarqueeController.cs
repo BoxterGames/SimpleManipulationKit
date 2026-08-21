@@ -1,4 +1,3 @@
-using SimpleManipulationKit;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -7,24 +6,19 @@ namespace SimpleManipulationKit.Internal
     [DefaultExecutionOrder(-50)]
     public sealed class MarqueeController : MonoBehaviour
     {
-        private const float MinScreenDistance = 20f;
-
         private MarqueeModel Marquee => InteractionContext.Marquee;
-
-        private Vector3 fromScreen;
         private bool wasDragging;
-        
+
         private void Update()
         {
             if (Input.GetMouseButtonDown(0) && !IsPointerOverUI())
             {
-                fromScreen = Input.mousePosition;
-                Marquee.BeginMarquee(Project(fromScreen));
+                Marquee.BeginMarquee(Input.mousePosition);
             }
 
             if (Input.GetMouseButton(0) && Marquee.IsActive)
             {
-                UpdateMarquee();
+                Marquee.UpdateMarquee(Input.mousePosition);
             }
 
             if (Input.GetMouseButtonUp(0))
@@ -33,19 +27,6 @@ namespace SimpleManipulationKit.Internal
             }
 
             wasDragging |= InteractionContext.Drag.IsDragging;
-        }
-
-        private void UpdateMarquee()
-        {
-            var toScreen = (Vector3)Input.mousePosition;
-
-            if (((Vector2)toScreen - (Vector2)fromScreen).magnitude < MinScreenDistance)
-            {
-                Marquee.UpdateMarquee(Marquee.StartPosition);
-                return;
-            }
-
-            Marquee.UpdateMarquee(Project(toScreen));
         }
 
         private void CompleteMarquee()
@@ -57,22 +38,12 @@ namespace SimpleManipulationKit.Internal
                 return;
             }
 
-            Marquee.EndMarquee(Marquee.EndPosition);
+            Marquee.EndMarquee();
         }
 
-        private Vector3 Project(Vector3 screen)
+        private static bool IsPointerOverUI()
         {
-            var view = Marquee.View;
-            if (view == null)
-            {
-                return screen;
-            }
-
-            var camera = Marquee.Camera != null ? Marquee.Camera : Camera.main;
-            return view.Project(screen, camera, transform);
+            return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
         }
-
-        private static bool IsPointerOverUI() =>
-            EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
     }
 }

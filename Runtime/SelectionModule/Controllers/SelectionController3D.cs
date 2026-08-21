@@ -4,11 +4,10 @@ using SimpleManipulationKit;
 
 namespace SimpleManipulationKit.Internal
 {
-    [RequireComponent(typeof(Collider))]
     public class SelectionController3D : MonoBehaviour
     {
         [SerializeField] private MonoBehaviour view;
-        [SerializeReference] private ISelectionCalculator selectionCalculator = new MultiSelection();
+        [SerializeReference, Attributes] private ISelectionCalculator selectionCalculator = new MultiSelection();
 
         private ISelectable Selectable => view as ISelectable;
 

@@ -1,5 +1,4 @@
 using System.Linq;
-using SimpleManipulationKit;
 using UnityEngine;
 
 namespace SimpleManipulationKit.Internal
@@ -7,12 +6,13 @@ namespace SimpleManipulationKit.Internal
     public sealed class MarqueSelectController : MonoBehaviour
     {
         [SerializeField] private MonoBehaviour view;
-        [SerializeReference] private IMarqueeCalculator marqueeCalculator = new SelectMarqueeXoZ();
+        [SerializeField] private Camera interactionCamera;
+        [SerializeReference, Attributes] private ISpaceConverter interactionSpace = new XYSpaceConverter();
 
         private ISelectable Selectable => view as ISelectable;
 
         private MarqueeModel Marquee => InteractionContext.Marquee;
-
+        
         private void OnValidate()
         {
             if (view is not null && Selectable is null)
@@ -25,7 +25,6 @@ namespace SimpleManipulationKit.Internal
 
         private void Awake()
         {
-            marqueeCalculator ??= new SelectMarqueeXoZ();
             Marquee.OnMarqueeEnd += HandleMarqueeEnd;
         }
 
@@ -34,14 +33,16 @@ namespace SimpleManipulationKit.Internal
             Marquee.OnMarqueeEnd -= HandleMarqueeEnd;
         }
 
-        private void HandleMarqueeEnd(Vector3 start, Vector3 end)
+        private void HandleMarqueeEnd(Vector3 startScreen, Vector3 endScreen)
         {
-            if (Selectable is null)
+            if (Selectable is not MonoBehaviour mono || 
+                !mono.isActiveAndEnabled ||
+                !interactionSpace.IsIntersect(transform, startScreen, endScreen))
             {
                 return;
             }
-
-            marqueeCalculator.OnMarqueeEnd(Selectable, start, end);
+            
+            Marquee.Add(Selectable);   
         }
     }
 }

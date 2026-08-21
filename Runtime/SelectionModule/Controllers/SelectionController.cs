@@ -8,7 +8,7 @@ namespace SimpleManipulationKit.Internal
     public class SelectionController : MonoBehaviour, IPointerDownHandler
     {
         [SerializeField] private MonoBehaviour view;
-        [SerializeReference] private ISelectionCalculator selectionCalculator = new MultiSelection();
+        [SerializeReference, Attributes] private ISelectionCalculator selectionCalculator = new MultiSelection();
 
         private ISelectable Selectable => view as ISelectable;
 

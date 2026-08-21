@@ -1,140 +1,148 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
 namespace SimpleManipulationKit.Editor
 {
-    public static class SerializeReferenceDropdownUtility
+    [CustomPropertyDrawer(typeof(Attributes))]
+    public sealed class SerializeReferenceDropdownDrawer : PropertyDrawer
     {
-        public static bool IsSerializeReference(SerializedProperty property)
+        private static readonly Dictionary<Type, Type[]> Cache = new();
+
+        public override void OnGUI(
+            Rect position,
+            SerializedProperty property,
+            GUIContent label)
         {
+            EditorGUI.BeginProperty(position, label, property);
+
             if (property.propertyType != SerializedPropertyType.ManagedReference)
             {
-                return false;
+                EditorGUI.PropertyField(position, property, label, true);
+                EditorGUI.EndProperty();
+                return;
             }
 
-            return GetField(property)?.IsDefined(typeof(SerializeReference), false) == true;
-        }
+            var types = GetTypes(fieldInfo.FieldType);
 
-        public static bool DrawProperty(SerializedProperty property, out Type selectedType)
-        {
-            selectedType = null;
-
-            var fieldType = GetField(property)?.FieldType;
-            var types = fieldType == null ? new List<Type>() : GetTypes(fieldType);
-
-            var rect = EditorGUILayout.GetControlRect();
-            var label = new GUIContent(property.displayName);
-
-            if (types.Count == 0)
+            if (types.Length == 0)
             {
-                EditorGUI.PropertyField(rect, property, label, true);
-                return false;
+                EditorGUI.PropertyField(position, property, label, true);
+                EditorGUI.EndProperty();
+                return;
             }
 
-            EditorGUI.BeginProperty(rect, label, property);
+            var currentType = GetSharedType(property, out var mixed);
 
-            var labelRect = new Rect(rect.x, rect.y, EditorGUIUtility.labelWidth, rect.height);
-            var popupRect = new Rect(
-                rect.x + EditorGUIUtility.labelWidth,
-                rect.y,
-                rect.width - EditorGUIUtility.labelWidth,
-                rect.height);
+            var names = new[] { "None" }
+                .Concat(types.Select(x => ObjectNames.NicifyVariableName(x.Name)))
+                .ToArray();
 
-            EditorGUI.PrefixLabel(labelRect, label);
-            var changed = DrawTypePopup(popupRect, property, types, out selectedType);
+            var index = currentType == null
+                ? 0
+                : Array.IndexOf(types, currentType) + 1;
 
-            EditorGUI.EndProperty();
+            EditorGUI.showMixedValue = mixed;
 
-            return changed;
-        }
-
-        public static void ApplyType(SerializedObject serializedObject, string propertyPath, Type type)
-        {
-            foreach (var target in serializedObject.targetObjects)
-            {
-                using var targetSerializedObject = new SerializedObject(target);
-                var property = targetSerializedObject.FindProperty(propertyPath);
-                if (property == null)
-                {
-                    continue;
-                }
-
-                property.managedReferenceValue = Activator.CreateInstance(type);
-                targetSerializedObject.ApplyModifiedProperties();
-            }
-
-            serializedObject.Update();
-        }
-
-        private static bool DrawTypePopup(Rect position, SerializedProperty property, List<Type> types, out Type selectedType)
-        {
-            selectedType = null;
-
-            var currentType = GetSharedType(property, out var hasMultipleValues);
-            var selectedIndex = currentType == null ? -1 : types.IndexOf(currentType);
-            var names = types.Select(type => ObjectNames.NicifyVariableName(type.Name)).ToArray();
-
-            EditorGUI.showMixedValue = hasMultipleValues;
             EditorGUI.BeginChangeCheck();
-            var newIndex = EditorGUI.Popup(position, selectedIndex, names);
+
+            var popupRect = EditorGUI.PrefixLabel(position, label);
+            var newIndex = EditorGUI.Popup(popupRect, index, names);
+
             var changed = EditorGUI.EndChangeCheck();
+
             EditorGUI.showMixedValue = false;
 
-            if (!changed || newIndex < 0 || (!hasMultipleValues && newIndex == selectedIndex))
+            if (changed)
             {
-                return false;
+                var type = newIndex == 0
+                    ? null
+                    : types[newIndex - 1];
+
+                ApplyType(property, type);
             }
 
-            selectedType = types[newIndex];
-            return true;
+            EditorGUI.EndProperty();
         }
 
-        private static Type GetSharedType(SerializedProperty property, out bool hasMultipleValues)
+        private static Type GetSharedType(
+            SerializedProperty property,
+            out bool mixed)
         {
-            hasMultipleValues = false;
+            mixed = false;
 
-            Type shared = null;
+            Type sharedType = null;
             var first = true;
 
             foreach (var target in property.serializedObject.targetObjects)
             {
-                using var targetSerializedObject = new SerializedObject(target);
-                var targetProperty = targetSerializedObject.FindProperty(property.propertyPath);
+                using var serializedObject = new SerializedObject(target);
+                var targetProperty =
+                    serializedObject.FindProperty(property.propertyPath);
+
                 var type = targetProperty?.managedReferenceValue?.GetType();
 
                 if (first)
                 {
-                    shared = type;
+                    sharedType = type;
                     first = false;
                     continue;
                 }
 
-                if (type != shared)
+                if (type != sharedType)
                 {
-                    hasMultipleValues = true;
+                    mixed = true;
                     return null;
                 }
             }
 
-            return shared;
+            return sharedType;
         }
 
-        private static List<Type> GetTypes(Type baseType)
+        private static void ApplyType(
+            SerializedProperty property,
+            Type type)
         {
-            return TypeCache.GetTypesDerivedFrom(baseType)
-                .Where(type => !type.IsAbstract && !type.IsInterface)
-                .OrderBy(type => type.Name)
-                .ToList();
+            var propertyPath = property.propertyPath;
+
+            foreach (var target in property.serializedObject.targetObjects)
+            {
+                using var serializedObject = new SerializedObject(target);
+
+                var targetProperty =
+                    serializedObject.FindProperty(propertyPath);
+
+                if (targetProperty == null)
+                    continue;
+
+                targetProperty.managedReferenceValue = type == null
+                    ? null
+                    : Activator.CreateInstance(type);
+
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            property.serializedObject.Update();
         }
 
-        private static FieldInfo GetField(SerializedProperty property)
+        private static Type[] GetTypes(Type baseType)
         {
-            var targetType = property.serializedObject.targetObject.GetType();
-            return targetType.GetField(property.name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (Cache.TryGetValue(baseType, out var result))
+                return result;
+
+            result = TypeCache
+                .GetTypesDerivedFrom(baseType)
+                .Where(x =>
+                    !x.IsAbstract &&
+                    !x.IsInterface &&
+                    !x.IsGenericType)
+                .OrderBy(x => x.Name)
+                .ToArray();
+
+            Cache[baseType] = result;
+            return result;
         }
     }
 }
