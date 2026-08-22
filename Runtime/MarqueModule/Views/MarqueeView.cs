@@ -10,9 +10,22 @@ namespace SimpleManipulationKit
 
         private MarqueeModel Marquee => InteractionContext.Marquee;
 
+        private Vector3 localStartPoint;
+
         private void Awake()
         {
+            Marquee.OnMarqueeStart += HandleMarqueeStart;
             transform.localScale = interactionSpace.GetSize(transform, Vector3.zero, Vector3.zero);
+        }
+
+        private void OnDestroy()
+        {
+            Marquee.OnMarqueeStart -= HandleMarqueeStart;
+        }
+
+        private void HandleMarqueeStart(Vector3 startScreen)
+        {
+            localStartPoint = interactionSpace.ScreenToLocalPoint(transform, startScreen);
         }
 
         private void LateUpdate()
@@ -24,9 +37,11 @@ namespace SimpleManipulationKit
                 transform.localScale = interactionSpace.GetSize(transform, Vector3.zero, Vector3.zero);
                 return;
             }
-            
-            transform.position = interactionSpace.GetCenterPosition(transform, Marquee.StartScreen, Marquee.EndScreen);
-            transform.localScale = interactionSpace.GetSize(transform, Marquee.StartScreen, Marquee.EndScreen);
+
+            var endLocal = interactionSpace.ScreenToLocalPoint(transform, Marquee.EndScreen);
+
+            transform.position = interactionSpace.GetCenterPosition(transform, localStartPoint, endLocal);
+            transform.localScale = interactionSpace.GetSize(transform, localStartPoint, endLocal);
         }
     }
 }

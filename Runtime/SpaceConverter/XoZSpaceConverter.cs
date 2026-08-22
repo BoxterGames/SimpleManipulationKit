@@ -24,19 +24,15 @@ namespace SimpleManipulationKit.Internal
             return reference.parent.InverseTransformPoint(worldPoint);
         }
 
-        public Vector3 GetSize(Transform reference, Vector3 screenA, Vector3 screenB)
+        public Vector3 GetSize(Transform reference, Vector3 localA, Vector3 localB)
         {
-            var a = ScreenToLocalPoint(reference, screenA);
-            var b = ScreenToLocalPoint(reference, screenB);
-            var delta = a - b;
+            var delta = localA - localB;
             return new Vector3(Mathf.Abs(delta.x), reference.localScale.y, Mathf.Abs(delta.z));
         }
 
-        public Vector3 GetCenterPosition(Transform reference, Vector3 screenA, Vector3 screenB)
+        public Vector3 GetCenterPosition(Transform reference, Vector3 localA, Vector3 localB)
         {
-            var a = ScreenToLocalPoint(reference, screenA);
-            var b = ScreenToLocalPoint(reference, screenB);
-            var localPosition = (a + b) * 0.5f;
+            var localPosition = (localA + localB) * 0.5f;
             localPosition.y = reference.localPosition.y;
             return reference.parent.TransformPoint(localPosition);
         }

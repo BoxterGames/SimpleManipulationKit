@@ -27,13 +27,10 @@ namespace SimpleManipulationKit.Internal
 
         public Vector3 GetSize(
             Transform reference,
-            Vector3 screenA,
-            Vector3 screenB)
+            Vector3 localA,
+            Vector3 localB)
         {
-            var a = ScreenToLocalPoint(reference, screenA);
-            var b = ScreenToLocalPoint(reference, screenB);
-
-            var delta = a - b;
+            var delta = localA - localB;
 
             return new Vector3(
                 Mathf.Abs(delta.x),
@@ -43,13 +40,10 @@ namespace SimpleManipulationKit.Internal
 
         public Vector3 GetCenterPosition(
             Transform reference,
-            Vector3 screenA,
-            Vector3 screenB)
+            Vector3 localA,
+            Vector3 localB)
         {
-            var a = ScreenToLocalPoint(reference, screenA);
-            var b = ScreenToLocalPoint(reference, screenB);
-
-            var position = (a + b) * 0.5f;
+            var position = (localA + localB) * 0.5f;
             position.z = reference.localPosition.z;
 
             return position;

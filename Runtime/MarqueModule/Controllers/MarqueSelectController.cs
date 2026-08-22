@@ -12,6 +12,8 @@ namespace SimpleManipulationKit.Internal
         private ISelectable Selectable => view as ISelectable;
 
         private MarqueeModel Marquee => InteractionContext.Marquee;
+
+        private Vector3 globalStartPoint;
         
         private void OnValidate()
         {
@@ -25,19 +27,33 @@ namespace SimpleManipulationKit.Internal
 
         private void Awake()
         {
+            Marquee.OnMarqueeStart += HandleMarqueeStart;
             Marquee.OnMarqueeEnd += HandleMarqueeEnd;
         }
 
         private void OnDestroy()
         {
+            Marquee.OnMarqueeStart -= HandleMarqueeStart;
             Marquee.OnMarqueeEnd -= HandleMarqueeEnd;
+        }
+
+        private void HandleMarqueeStart(Vector3 startScreen)
+        {
+            globalStartPoint = interactionSpace.ScreenToWorldPoint(transform, startScreen);
         }
 
         private void HandleMarqueeEnd(Vector3 startScreen, Vector3 endScreen)
         {
             if (Selectable is not MonoBehaviour mono || 
-                !mono.isActiveAndEnabled ||
-                !interactionSpace.IsIntersect(transform, startScreen, endScreen))
+                !mono.isActiveAndEnabled)
+            {
+                return;
+            }
+
+            var camera = interactionCamera != null ? interactionCamera : Camera.main;
+            var adjustedStartScreen = camera.WorldToScreenPoint(globalStartPoint);
+
+            if (!interactionSpace.IsIntersect(transform, adjustedStartScreen, endScreen))
             {
                 return;
             }

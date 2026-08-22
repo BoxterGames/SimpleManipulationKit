@@ -4,43 +4,40 @@ using UnityEngine;
 
 namespace SimpleManipulationKit.Internal
 {
-    public abstract class BaseDragController : MonoBehaviour
+    public sealed class DragCalculator
     {
-        [SerializeField] private MonoBehaviour view;
-        [SerializeReference, Attributes] private ISelectionCalculator selectionCalculator = new MultiSelection();
-        [SerializeReference, Attributes] private ISpaceConverter spaceConverter = new ScreenSpaceConverter();
+        private readonly ISelectionCalculator selectionCalculator;
+        private readonly ISpaceConverter spaceConverter;
 
         private readonly List<IDraggable> targets = new();
         private readonly Dictionary<IDraggable, Vector3> grabOffsets = new();
 
-        private IDraggable Draggable => view as IDraggable;
         private bool IsDragging => InteractionContext.Drag.IsDragging;
 
-        protected virtual void OnValidate()
+        public DragCalculator(
+            ISelectionCalculator selectionCalculator,
+            ISpaceConverter spaceConverter)
         {
-            if (view is not null && Draggable is null)
-                view = null;
-
-            view ??= GetComponentsInChildren<MonoBehaviour>(true)
-                .FirstOrDefault(x => x is IDraggable);
+            this.selectionCalculator = selectionCalculator;
+            this.spaceConverter = spaceConverter;
         }
 
-        protected void UpdateDrag()
+        public void UpdateDrag(Vector3 screenPoint)
         {
             if (!IsDragging)
                 return;
 
-            UpdateDragTargets(Input.mousePosition);
-            InteractionContext.Drag.UpdateDrag(Input.mousePosition);
+            UpdateDragTargets(screenPoint);
+            InteractionContext.Drag.UpdateDrag(screenPoint);
         }
 
-        protected bool TryBeginDrag()
+        public bool TryBeginDrag(IDraggable draggable, Vector3 screenPoint)
         {
-            if (Draggable is null ||
-                Draggable is IDraggableAvailable available && !available.CanDrag())
+            if (draggable is null ||
+                draggable is IDraggableAvailable available && !available.CanDrag())
                 return false;
 
-            selectionCalculator.Select(Draggable);
+            selectionCalculator.Select(draggable);
 
             var selected = InteractionContext.Selection
                 .GetSelected<IDraggable>()
@@ -49,19 +46,19 @@ namespace SimpleManipulationKit.Internal
             if (selected.Count == 0)
                 return false;
 
-            InteractionContext.Drag.BeginDrag(selected, Input.mousePosition);
-            BeginDragTargets(selected, Input.mousePosition);
+            InteractionContext.Drag.BeginDrag(selected, screenPoint);
+            BeginDragTargets(selected, screenPoint);
 
             return true;
         }
 
-        protected void EndDrag()
+        public void EndDrag(Vector3 screenPoint)
         {
             if (!IsDragging)
                 return;
 
             EndDragTargets();
-            InteractionContext.Drag.EndDrag(Input.mousePosition);
+            InteractionContext.Drag.EndDrag(screenPoint);
         }
 
         private void BeginDragTargets(
