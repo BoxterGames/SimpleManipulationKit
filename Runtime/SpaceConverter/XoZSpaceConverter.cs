@@ -12,8 +12,9 @@ namespace SimpleManipulationKit.Internal
         {
             targetCamera ??= Camera.main;
 
+            var space = reference.parent ?? reference;
             var ray = targetCamera.ScreenPointToRay(screenPoint);
-            var plane = new Plane(reference.parent.up, reference.parent.position);
+            var plane = new Plane(space.up, space.position);
             plane.Raycast(ray, out var enter);
             return ray.GetPoint(enter);
         }
@@ -21,7 +22,7 @@ namespace SimpleManipulationKit.Internal
         public Vector3 ScreenToLocalPoint(Transform reference, Vector3 screenPoint)
         {
             var worldPoint = ScreenToWorldPoint(reference, screenPoint);
-            return reference.parent.InverseTransformPoint(worldPoint);
+            return (reference.parent ?? reference).InverseTransformPoint(worldPoint);
         }
 
         public Vector3 GetSize(Transform reference, Vector3 localA, Vector3 localB)
@@ -34,7 +35,7 @@ namespace SimpleManipulationKit.Internal
         {
             var localPosition = (localA + localB) * 0.5f;
             localPosition.y = reference.localPosition.y;
-            return reference.parent.TransformPoint(localPosition);
+            return (reference.parent ?? reference).TransformPoint(localPosition);
         }
 
         public bool IsIntersect(Transform reference, Vector3 screenA, Vector3 screenB)
@@ -42,7 +43,7 @@ namespace SimpleManipulationKit.Internal
             var a = ScreenToLocalPoint(reference, screenA);
             var b = ScreenToLocalPoint(reference, screenB);
 
-            var position = reference.parent.InverseTransformPoint(reference.position);
+            var position = (reference.parent ?? reference).InverseTransformPoint(reference.position);
             
             var minX = Mathf.Min(a.x, b.x);
             var maxX = Mathf.Max(a.x, b.x);

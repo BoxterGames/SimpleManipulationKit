@@ -25,8 +25,24 @@ namespace SimpleManipulationKit
             view ??= GetComponentsInParent<MonoBehaviour>(true).FirstOrDefault(x => x is ISelectable);
         }
 
-        private void Update()
+        private void OnEnable()
         {
+            Selection.OnUpdateSelected += RefreshVisual;
+            RefreshVisual();
+        }
+
+        private void OnDisable()
+        {
+            Selection.OnUpdateSelected -= RefreshVisual;
+        }
+
+        private void RefreshVisual()
+        {
+            if (background is null)
+            {
+                return;
+            }
+
             var isSelected = Selection.Contains(Selectable);
             background.color = isSelected ? selectedColor : unselectedColor;
         }

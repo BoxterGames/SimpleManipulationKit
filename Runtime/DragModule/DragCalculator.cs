@@ -85,10 +85,11 @@ namespace SimpleManipulationKit.Internal
             foreach (var draggable in targets)
             {
                 var transform = ((MonoBehaviour)draggable).transform;
+                var space = transform.parent ?? transform;
 
                 grabOffsets[draggable] =
                     transform.localPosition -
-                    transform.parent.InverseTransformPoint(hit);
+                    space.InverseTransformPoint(hit);
 
                 if (draggable is IDraggableStart start)
                     start.OnDragStart(transform.localPosition);
@@ -106,9 +107,10 @@ namespace SimpleManipulationKit.Internal
             foreach (var draggable in targets)
             {
                 var transform = ((MonoBehaviour)draggable).transform;
+                var space = transform.parent ?? transform;
 
                 transform.localPosition =
-                    transform.parent.InverseTransformPoint(hit) +
+                    space.InverseTransformPoint(hit) +
                     grabOffsets[draggable];
 
                 if (draggable is IDraggableUpdate update)
