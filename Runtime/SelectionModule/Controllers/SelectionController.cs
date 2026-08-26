@@ -35,7 +35,7 @@ namespace SimpleManipulationKit.Internal
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (Selectable is null)
+            if (Selectable is null || eventData.button != PointerEventData.InputButton.Left)
             {
                 return;
             }

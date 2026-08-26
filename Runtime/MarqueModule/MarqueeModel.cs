@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SimpleManipulationKit.Internal;
 using UnityEngine;
 
 namespace SimpleManipulationKit
@@ -7,6 +8,7 @@ namespace SimpleManipulationKit
     public sealed class MarqueeModel
     {
         private readonly HashSet<ISelectable> replaceBatch = new();
+        private readonly MultiSelection selectionCalculator = new();
 
         public bool IsActive { get; private set; }
 
@@ -44,7 +46,7 @@ namespace SimpleManipulationKit
             }
 
             OnMarqueeEnd?.Invoke(StartScreen, EndScreen);
-            InteractionContext.Selection.Set(replaceBatch);
+            selectionCalculator.Select(replaceBatch);
             replaceBatch.Clear();
             Clear();
         }

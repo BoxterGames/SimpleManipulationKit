@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace SimpleManipulationKit.Internal
@@ -30,6 +31,27 @@ namespace SimpleManipulationKit.Internal
             }
 
             Model.Set(selectable);
+        }
+
+        public void Select(IEnumerable<ISelectable> selectables)
+        {
+            if (IsShiftPressed)
+            {
+                Model.Add(selectables);
+                return;
+            }
+
+            if (IsControlPressed)
+            {
+                foreach (var selectable in selectables)
+                {
+                    Model.Toggle(selectable);
+                }
+
+                return;
+            }
+
+            Model.Set(selectables);
         }
     }
 }

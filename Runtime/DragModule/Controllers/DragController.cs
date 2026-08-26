@@ -31,6 +31,11 @@ namespace SimpleManipulationKit.Internal
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (eventData.button != PointerEventData.InputButton.Left)
+            {
+                return;
+            }
+
             dragCalculator.TryBeginDrag(Draggable, Input.mousePosition);
         }
 
@@ -41,6 +46,11 @@ namespace SimpleManipulationKit.Internal
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            if (eventData.button != PointerEventData.InputButton.Left)
+            {
+                return;
+            }
+
             dragCalculator.EndDrag(Input.mousePosition);
         }
     }

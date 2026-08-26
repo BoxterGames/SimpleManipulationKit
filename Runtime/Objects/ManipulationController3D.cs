@@ -1,5 +1,6 @@
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace SimpleManipulationKit.Internal
 {
@@ -48,6 +49,12 @@ namespace SimpleManipulationKit.Internal
 
         private void OnMouseDown()
         {
+            if (!Input.GetMouseButtonDown(0)
+                || EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
             dragCalculator.TryBeginDrag(Draggable, Input.mousePosition);
         }
 
@@ -58,6 +65,11 @@ namespace SimpleManipulationKit.Internal
 
         private void OnMouseUp()
         {
+            if (!Input.GetMouseButtonUp(0))
+            {
+                return;
+            }
+
             dragCalculator.EndDrag(Input.mousePosition);
         }
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Linq;
 using SimpleManipulationKit;
 
@@ -33,7 +34,9 @@ namespace SimpleManipulationKit.Internal
 
         private void OnMouseDown()
         {
-            if (Selectable is null)
+            if (Selectable is null
+                || !Input.GetMouseButtonDown(0)
+                || EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             {
                 return;
             }

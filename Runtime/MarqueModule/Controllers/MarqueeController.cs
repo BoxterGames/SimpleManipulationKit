@@ -11,7 +11,8 @@ namespace SimpleManipulationKit.Internal
 
         private void Update()
         {
-            if (Input.GetMouseButtonDown(0) && !IsPointerOverUI())
+            if (Input.GetMouseButtonDown(0)
+                && (EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject()))
             {
                 Marquee.BeginMarquee(Input.mousePosition);
             }
@@ -39,11 +40,6 @@ namespace SimpleManipulationKit.Internal
             }
 
             Marquee.EndMarquee();
-        }
-
-        private static bool IsPointerOverUI()
-        {
-            return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
         }
     }
 }

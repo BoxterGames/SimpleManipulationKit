@@ -18,7 +18,7 @@ namespace SimpleManipulationKit.Internal
 
             if (!Input.GetMouseButtonDown(0)
                 || HasModifier()
-                || IsPointerOverUI()
+                || EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()
                 || HitSelectable())
             {
                 return;
@@ -31,11 +31,6 @@ namespace SimpleManipulationKit.Internal
         {
             return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || 
                    Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-        }
-
-        private static bool IsPointerOverUI()
-        {
-            return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
         }
 
         private static bool HitSelectable()
