@@ -14,7 +14,7 @@ namespace SimpleManipulationKit.Internal
         private DragCalculator dragCalculator;
 
         private IDraggable Draggable => view as IDraggable;
-
+        
         private void Awake()
         {
             dragCalculator = new DragCalculator(selectionCalculator, spaceConverter);
@@ -30,6 +30,11 @@ namespace SimpleManipulationKit.Internal
             view ??= GetComponentsInChildren<MonoBehaviour>(true).FirstOrDefault(x => x is IDraggable);
         }
 
+        private void OnDisable()
+        {
+            dragCalculator.CancelDrag(Input.mousePosition);
+        }
+
         private void OnMouseDown()
         {
             if (!Input.GetMouseButtonDown(0)
@@ -43,6 +48,11 @@ namespace SimpleManipulationKit.Internal
 
         private void Update()
         {
+            if (!dragCalculator.IsDragging)
+            {
+                return;
+            }
+
             dragCalculator.UpdateDrag(Input.mousePosition);
         }
 

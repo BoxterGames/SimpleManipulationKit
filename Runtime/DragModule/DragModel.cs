@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
-using SimpleManipulationKit.Internal;
 using UnityEngine;
 
 namespace SimpleManipulationKit
 {
     public sealed class DragModel
     {
-        public bool IsDragging => targets.Count  > 0;
+        public bool IsDragging => targets.Count > 0;
 
-        private List<IDraggable> targets = new();
+        private readonly List<IDraggable> targets = new();
 
         public event Action<Vector3> OnDragStart;
         public event Action<Vector3, Vector3> OnDragUpdate;
@@ -46,6 +45,11 @@ namespace SimpleManipulationKit
         {
             EndPosition = pointerPosition;
             OnDragEnd?.Invoke(StartPosition, pointerPosition);
+            targets.Clear();
+        }
+
+        public void Cancel()
+        {
             targets.Clear();
         }
     }

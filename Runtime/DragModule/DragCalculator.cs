@@ -12,7 +12,7 @@ namespace SimpleManipulationKit.Internal
         private readonly List<IDraggable> targets = new();
         private readonly Dictionary<IDraggable, Vector3> grabOffsets = new();
 
-        private bool IsDragging => InteractionContext.Drag.IsDragging;
+        public bool IsDragging => targets.Count > 0;
 
         public DragCalculator(
             ISelectionCalculator selectionCalculator,
@@ -25,7 +25,15 @@ namespace SimpleManipulationKit.Internal
         public void UpdateDrag(Vector3 screenPoint)
         {
             if (!IsDragging)
+            {
                 return;
+            }
+
+            if (!Input.GetMouseButton(0))
+            {
+                EndDrag(screenPoint);
+                return;
+            }
 
             UpdateDragTargets(screenPoint);
             InteractionContext.Drag.UpdateDrag(screenPoint);
@@ -46,8 +54,12 @@ namespace SimpleManipulationKit.Internal
             if (selected.Count == 0)
                 return false;
 
-            InteractionContext.Drag.BeginDrag(selected, screenPoint);
             BeginDragTargets(selected, screenPoint);
+
+            if (!IsDragging)
+                return false;
+
+            InteractionContext.Drag.BeginDrag(selected, screenPoint);
 
             return true;
         }
@@ -55,10 +67,26 @@ namespace SimpleManipulationKit.Internal
         public void EndDrag(Vector3 screenPoint)
         {
             if (!IsDragging)
+            {
                 return;
+            }
 
             EndDragTargets();
             InteractionContext.Drag.EndDrag(screenPoint);
+        }
+
+        public void CancelDrag(Vector3 screenPoint)
+        {
+            if (IsDragging)
+            {
+                EndDrag(screenPoint);
+                return;
+            }
+
+            if (InteractionContext.Drag.IsDragging)
+            {
+                InteractionContext.Drag.Cancel();
+            }
         }
 
         private void BeginDragTargets(

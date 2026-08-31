@@ -33,6 +33,7 @@ namespace SimpleManipulationKit.Internal
 
         private void OnDisable()
         {
+            dragCalculator.CancelDrag(Input.mousePosition);
             InteractionContext.Selection.Remove(Draggable);
         }
 
@@ -58,6 +59,11 @@ namespace SimpleManipulationKit.Internal
 
         private void Update()
         {
+            if (!dragCalculator.IsDragging)
+            {
+                return;
+            }
+
             dragCalculator.UpdateDrag(Input.mousePosition);
         }
 

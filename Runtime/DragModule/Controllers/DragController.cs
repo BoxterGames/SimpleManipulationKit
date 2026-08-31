@@ -29,6 +29,11 @@ namespace SimpleManipulationKit.Internal
             view ??= GetComponentsInChildren<MonoBehaviour>(true).FirstOrDefault(x => x is IDraggable);
         }
 
+        private void OnDisable()
+        {
+            dragCalculator.CancelDrag(Input.mousePosition);
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             if (eventData.button != PointerEventData.InputButton.Left)
@@ -41,6 +46,11 @@ namespace SimpleManipulationKit.Internal
 
         private void Update()
         {
+            if (!dragCalculator.IsDragging)
+            {
+                return;
+            }
+
             dragCalculator.UpdateDrag(Input.mousePosition);
         }
 
