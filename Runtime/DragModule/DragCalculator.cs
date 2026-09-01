@@ -41,23 +41,29 @@ namespace SimpleManipulationKit.Internal
 
         public bool TryBeginDrag(IDraggable draggable, Vector3 screenPoint)
         {
-            if (draggable is null ||
-                draggable is IDraggableAvailable available && !available.CanDrag())
+            if (draggable is null || !IsDraggable(draggable))
+            {
                 return false;
+            }
 
             selectionCalculator.Select(draggable);
 
             var selected = InteractionContext.Selection
                 .GetSelected<IDraggable>()
+                .Where(IsDraggable)
                 .ToList();
 
             if (selected.Count == 0)
+            {
                 return false;
+            }
 
             BeginDragTargets(selected, screenPoint);
 
             if (!IsDragging)
+            {
                 return false;
+            }
 
             InteractionContext.Drag.BeginDrag(selected, screenPoint);
 
@@ -89,23 +95,25 @@ namespace SimpleManipulationKit.Internal
             }
         }
 
-        private void BeginDragTargets(
-            IReadOnlyList<IDraggable> draggables,
-            Vector3 screenPoint)
+        private void BeginDragTargets(IReadOnlyList<IDraggable> draggables, Vector3 screenPoint)
         {
             targets.Clear();
             grabOffsets.Clear();
 
             foreach (var draggable in draggables)
             {
-                if (draggable is not MonoBehaviour)
+                if (draggable is not MonoBehaviour || !IsDraggable(draggable))
+                {
                     continue;
+                }
 
                 targets.Add(draggable);
             }
 
             if (targets.Count == 0)
+            {
                 return;
+            }
 
             var firstTransform = ((MonoBehaviour)targets[0]).transform;
             var hit = spaceConverter.ScreenToWorldPoint(firstTransform, screenPoint);
@@ -120,20 +128,29 @@ namespace SimpleManipulationKit.Internal
                     space.InverseTransformPoint(hit);
 
                 if (draggable is IDraggableStart start)
+                {
                     start.OnDragStart(transform.localPosition);
+                }
             }
         }
 
         private void UpdateDragTargets(Vector3 screenPoint)
         {
             if (targets.Count == 0)
+            {
                 return;
+            }
 
             var firstTransform = ((MonoBehaviour)targets[0]).transform;
             var hit = spaceConverter.ScreenToWorldPoint(firstTransform, screenPoint);
 
             foreach (var draggable in targets)
             {
+                if (!IsDraggable(draggable))
+                {
+                    continue;
+                }
+
                 var transform = ((MonoBehaviour)draggable).transform;
                 var space = transform.parent ?? transform;
 
@@ -142,7 +159,9 @@ namespace SimpleManipulationKit.Internal
                     grabOffsets[draggable];
 
                 if (draggable is IDraggableUpdate update)
+                {
                     update.OnDragUpdate(transform.localPosition);
+                }
             }
         }
 
@@ -151,11 +170,18 @@ namespace SimpleManipulationKit.Internal
             foreach (var draggable in targets)
             {
                 if (draggable is IDraggableEnd end)
+                {
                     end.OnDragEnd(((MonoBehaviour)draggable).transform.localPosition);
+                }
             }
 
             targets.Clear();
             grabOffsets.Clear();
+        }
+
+        private static bool IsDraggable(IDraggable draggable)
+        {
+            return draggable is not IDraggableAvailable available || available.CanDrag();
         }
     }
 }
