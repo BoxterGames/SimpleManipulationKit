@@ -19,7 +19,7 @@ namespace SimpleManipulationKit
         public event Action<Vector3, Vector3> OnMarqueeUpdate;
         public event Action<Vector3, Vector3> OnMarqueeEnd;
 
-        public void BeginMarquee(Vector3 startScreen)
+        internal void BeginMarquee(Vector3 startScreen)
         {
             StartScreen = startScreen;
             EndScreen = startScreen;
@@ -27,7 +27,7 @@ namespace SimpleManipulationKit
             OnMarqueeStart?.Invoke(StartScreen);
         }
 
-        public void UpdateMarquee(Vector3 endScreen)
+        internal void UpdateMarquee(Vector3 endScreen)
         {
             if (!IsActive)
             {
@@ -38,7 +38,7 @@ namespace SimpleManipulationKit
             OnMarqueeUpdate?.Invoke(StartScreen, EndScreen);
         }
 
-        public void EndMarquee()
+        internal void EndMarquee()
         {
             if (!IsActive)
             {
@@ -51,7 +51,7 @@ namespace SimpleManipulationKit
             Clear();
         }
 
-        public void Add(ISelectable selectable)
+        internal void Add(ISelectable selectable)
         {
             if (IsActive && selectable != null)
             {
@@ -59,7 +59,7 @@ namespace SimpleManipulationKit
             }
         }
 
-        public void CancelMarquee()
+        internal void CancelMarquee()
         {
             replaceBatch.Clear();
             Clear();

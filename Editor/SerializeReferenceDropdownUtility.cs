@@ -7,7 +7,7 @@ using UnityEngine;
 namespace SimpleManipulationKit.Editor
 {
     [CustomPropertyDrawer(typeof(Attributes))]
-    public sealed class SerializeReferenceDropdownDrawer : PropertyDrawer
+    internal sealed class SerializeReferenceDropdownDrawer : PropertyDrawer
     {
         private static readonly Dictionary<Type, Type[]> Cache = new();
 

@@ -17,7 +17,7 @@ namespace SimpleManipulationKit
         public Vector3 StartPosition { get; private set; }
         public Vector3 EndPosition { get; private set; }
 
-        public void BeginDrag(IDraggable target, Vector3 pointerPosition)
+        internal void BeginDrag(IDraggable target, Vector3 pointerPosition)
         {
             targets.Clear();
             targets.Add(target);
@@ -26,7 +26,7 @@ namespace SimpleManipulationKit
             OnDragStart?.Invoke(pointerPosition);
         }
 
-        public void BeginDrag(IEnumerable<IDraggable> listTarget, Vector3 pointerPosition)
+        internal void BeginDrag(IEnumerable<IDraggable> listTarget, Vector3 pointerPosition)
         {
             targets.Clear();
             targets.AddRange(listTarget);
@@ -35,20 +35,20 @@ namespace SimpleManipulationKit
             OnDragStart?.Invoke(pointerPosition);
         }
 
-        public void UpdateDrag(Vector3 pointerPosition)
+        internal void UpdateDrag(Vector3 pointerPosition)
         {
             EndPosition = pointerPosition;
             OnDragUpdate?.Invoke(StartPosition, pointerPosition);
         }
 
-        public void EndDrag(Vector3 pointerPosition)
+        internal void EndDrag(Vector3 pointerPosition)
         {
             EndPosition = pointerPosition;
             OnDragEnd?.Invoke(StartPosition, pointerPosition);
             targets.Clear();
         }
 
-        public void Cancel()
+        internal void Cancel()
         {
             targets.Clear();
         }

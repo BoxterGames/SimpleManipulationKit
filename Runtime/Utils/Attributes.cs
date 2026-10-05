@@ -4,7 +4,7 @@ using UnityEngine;
 namespace SimpleManipulationKit
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public sealed class Attributes : PropertyAttribute
+    internal sealed class Attributes : PropertyAttribute
     {
     }
 }

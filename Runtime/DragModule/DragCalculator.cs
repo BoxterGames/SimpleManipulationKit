@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace SimpleManipulationKit.Internal
 {
-    public sealed class DragCalculator
+    internal sealed class DragCalculator
     {
         private readonly ISelectionCalculator selectionCalculator;
         private readonly ISpaceConverter spaceConverter;
